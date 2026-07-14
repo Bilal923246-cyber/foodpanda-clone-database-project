@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>FoodPanda Clone | DB Project Slides | H.M.Bilal</title>
+    <!-- Leaflet + Routing -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <!-- Mermaid -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(145deg, #fff5f8, #ffe4ec);
+            overflow: hidden;
+            height: 100vh;
+        }
+        .slides-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease, visibility 0.5s;
+            overflow-y: auto;
+            padding: 30px 40px;
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(2px);
+        }
+        .slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .slide::-webkit-scrollbar {
+            width: 8px;
+        }
+        .slide::-webkit-scrollbar-track {
+            background: #ffe0e8;
+            border-radius: 10px;
+        }
+        .slide::-webkit-scrollbar-thumb {
+            background: #d70f64;
+            border-radius: 10px;
+        }
+        .slide-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 48px;
+            padding: 30px;
+            box-shadow: 0 20px 35px rgba(215,15,100,0.1);
+            border: 1px solid #ffb7ce;
+        }
+        h1, h2, h3 {
+            color: #d70f64;
+        }
+        h1 { font-size: 2.5rem; margin-bottom: 20px; }
+        h2 { border-left: 5px solid #d70f64; padding-left: 18px; margin: 20px 0 15px; }
+        .badge {
+            background: #fce4ec;
+            padding: 6px 16px;
+            border-radius: 40px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .nav-buttons {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            display: flex;
+            gap: 12px;
+            z-index: 100;
+        }
+        .nav-btn {
+            background: #d70f64;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 60px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .nav-btn.outline {
+            background: white;
+            border: 1px solid #d70f64;
+            color: #d70f64;
+        }
+        .slide-counter {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #d70f64cc;
+            color: white;
+            padding: 6px 14px;
+            border-radius: 40px;
+            font-weight: bold;
+            z-index: 100;
+        }
+        .relations-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .rel-card {
+            background: #fff0f5;
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            border: 1px solid #d70f64;
+            position: relative;
+            cursor: help;
+        }
+        .rel-card .tooltip {
+            visibility: hidden;
+            width: 260px;
+            background: #d70f64;
+            color: white;
+            text-align: center;
+            border-radius: 12px;
+            padding: 8px;
+            position: absolute;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -130px;
+            font-size: 0.75rem;
+            opacity: 0;
+            transition: 0.2s;
+            pointer-events: none;
+            z-index: 20;
+        }
+        .rel-card:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #ffb7ce;
+            padding: 8px 10px;
+            text-align: left;
+        }
+        th {
+            background: #fce4ec;
+            color: #d70f64;
+        }
+        pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 20px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .map-container {
+            height: 350px;
+            border-radius: 24px;
+            border: 2px solid #d70f64;
+            margin: 20px 0;
+        }
+        button.sim-btn {
+            background: #d70f64;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 40px;
+            color: white;
+            margin: 5px;
+            cursor: pointer;
+        }
+        .qa-item {
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ffb7ce;
+            padding-bottom: 12px;
+        }
+        .qa-question {
+            font-weight: bold;
+            color: #d70f64;
+        }
+        .qa-answer {
+            display: none;
+            background: #fff0f5;
+            padding: 10px;
+            border-radius: 20px;
+            margin-top: 8px;
+        }
+        .show-answer-btn {
+            background: #d70f64;
+            border: none;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            margin-left: 12px;
+            cursor: pointer;
+        }
+        @media (max-width: 700px) {
+            .slide { padding: 15px; }
+            .slide-content { padding: 20px; }
+            h1 { font-size: 1.8rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="slides-container" id="slidesContainer">
+    <!-- Slide 1 -->
+    <div class="slide active" id="slide1">
+        <div class="slide-content">
+            <h1><i class="fas fa-utensils"></i> FoodPanda Clone Database Project</h1>
+            <div class="badge"><i class="fas fa-user-graduate"></i> H.M.Bilal | Roll No: FA-2025-SEC-B-048</div>
+            <div class="badge"><i class="fas fa-database"></i> 22 Tables | 3NF | MS SQL Server | Live Simulation</div>
+            <p style="margin-top: 30px;">A complete relational database for a food delivery platform.</p>
+            <p><strong>Agenda:</strong> Problem Statement | ER/UML | Normalization | SQL | Rider Simulation | Q&A</p>
+            <p><i class="fas fa-arrow-right"></i> Use Next button or → key to navigate.</p>
+        </div>
+    </div>
+
+    <!-- Slide 2 -->
+    <div class="slide" id="slide2">
+        <div class="slide-content">
+            <h2>📋 Problem Statement & Objectives</h2>
+            <p><strong>Problem:</strong> Manual order management → lost orders, payment errors, no real‑time tracking.</p>
+            <p><strong>Objectives:</strong></p>
+            <ul>
+                <li>Automate orders, payments, delivery assignment</li>
+                <li>Ensure data integrity (ACID, constraints)</li>
+                <li>Provide business intelligence</li>
+                <li>Simulate rider movement (Delivery_Assignments)</li>
+            </ul>
+            <div class="badge">✅ Fully normalized 22‑table database (3NF)</div>
+        </div>
+    </div>
+
+    <!-- Slide 3 -->
+    <div class="slide" id="slide3">
+        <div class="slide-content">
+            <h2>🧠 Three‑Level Architecture</h2>
+            <ul>
+                <li><strong>Conceptual:</strong> Entities – Customer, Restaurant, Order, Rider, Payment</li>
+                <li><strong>Logical:</strong> 22 tables, attributes, PK/FK, constraints (3NF)</li>
+                <li><strong>Physical:</strong> Indexes, storage, security logs (User_Security)</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Slide 4: ER Diagram -->
+    <div class="slide" id="slide4">
+        <div class="slide-content">
+            <h2>📊 ER Diagram (Crow's Foot)</h2>
+            <div class="mermaid" style="background:white; padding:10px; border-radius:24px;">
+            erDiagram
+                USERS ||--|| CUSTOMERS : "is"
+                USERS ||--|| RIDERS : "is"
+                CUSTOMERS ||--o{ ORDERS : "places"
+                RESTAURANTS ||--o{ MENU_ITEMS : "offers"
+                ORDERS ||--|| PAYMENTS : "has"
+                ORDERS ||--o{ ORDER_ITEMS : "contains"
+                RIDERS ||--o{ DELIVERY_ASSIGNMENTS : "performs"
+            </div>
+            <div class="relations-grid">
+                <div class="rel-card">||--||<span class="tooltip">One‑to‑one</span></div>
+                <div class="rel-card">||--o{<span class="tooltip">One‑to‑many</span></div>
+                <div class="rel-card">}o--||<span class="tooltip">Many‑to‑one</span></div>
+            </div>
+            <p>Hover symbols for explanation.</p>
+        </div>
+    </div>
+
+    <!-- Slide 5: Relationships with hover -->
+    <div class="slide" id="slide5">
+        <div class="slide-content">
+            <h2>🔗 Interactive Relationships (Hover)</h2>
+            <div class="relations-grid">
+                <div class="rel-card">👤 User → Customer <span class="tooltip">1:1 – one user is one customer</span></div>
+                <div class="rel-card">🛍️ Customer → Order <span class="tooltip">1:N – one customer places many orders</span></div>
+                <div class="rel-card">🏪 Restaurant → Menu_Item <span class="tooltip">1:N – one restaurant offers many items</span></div>
+                <div class="rel-card">📦 Order → Order_Items <span class="tooltip">1:N – one order contains many items</span></div>
+                <div class="rel-card">💳 Order → Payment <span class="tooltip">1:1 – each order has one payment</span></div>
+                <div class="rel-card">🛵 Rider → Delivery <span class="tooltip">1:N – one rider performs many deliveries</span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 6: UML -->
+    <div class="slide" id="slide6">
+        <div class="slide-content">
+            <h2>🏛️ UML Class Diagram (Inheritance)</h2>
+            <div class="mermaid" style="background:white; padding:10px;">
+            classDiagram
+                class User {
+                    +int user_id
+                    +string email
+                }
+                class Customer {
+                    +int loyalty_points
+                }
+                class Rider {
+                    +float rating
+                }
+                User <|-- Customer
+                User <|-- Rider
+            </div>
+            <p>Generalization: <code>Customer</code> and <code>Rider</code> inherit from <code>User</code>.</p>
+        </div>
+    </div>
+
+    <!-- Slide 7: Table Inventory -->
+    <div class="slide" id="slide7">
+        <div class="slide-content">
+            <h2>🗂️ 22 Tables (3NF)</h2>
+            <table style="font-size:0.8rem;">
+                <tr><th>Table</th><th>PK</th><th>FK</th><th>Purpose</th></tr>
+                <tr><td>Users</td><td>user_id</td><td>-</td><td>Authentication</td></tr>
+                <tr><td>Customers</td><td>customer_id</td><td>user_id</td><td>Customer details</td></tr>
+                <tr><td>Riders</td><td>rider_id</td><td>user_id</td><td>Delivery personnel</td></tr>
+                <tr><td>Restaurants</td><td>restaurant_id</td><td>owner_id</td><td>Restaurant info</td></tr>
+                <tr><td>Orders</td><td>order_id</td><td>customer_id, restaurant_id</td><td>Order header</td></tr>
+                <tr><td>Order_Items</td><td>order_item_id</td><td>order_id, item_id</td><td>Line items (weak)</td></tr>
+                <tr><td colspan="4">... plus Payments, Delivery_Assignments, Promotions, Reviews, etc.</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Slide 8: Normalization -->
+    <div class="slide" id="slide8">
+        <div class="slide-content">
+            <h2>🔧 Normalization (3NF) – Example</h2>
+            <ul>
+                <li><strong>1NF:</strong> No repeating groups → <code>Order_Items</code> one row per item.</li>
+                <li><strong>2NF:</strong> No partial dependency → <code>unit_price</code> snapshot.</li>
+                <li><strong>3NF:</strong> No transitive dependency → <code>Orders</code> stores <code>customer_id</code>, not name.</li>
+            </ul>
+            <p>Prevents update/insert/delete anomalies.</p>
+        </div>
+    </div>
+
+    <!-- Slide 9: SQL Implementation (DDL sample) -->
+    <div class="slide" id="slide9">
+        <div class="slide-content">
+            <h2>⚙️ SQL Server Implementation</h2>
+            <pre><code>CREATE TABLE Users (
+    user_id INT IDENTITY PRIMARY KEY,
+    email NVARCHAR(100) UNIQUE NOT NULL,
+    user_type NVARCHAR(20) CHECK (user_type IN ('customer','owner','rider'))
+);
+
+CREATE TABLE Orders (
+    order_id INT IDENTITY PRIMARY KEY,
+    customer_id INT FOREIGN KEY REFERENCES Customers(customer_id),
+    total_amount DECIMAL(10,2)
+);</code></pre>
+            <p>Full script includes 22 tables with PK/FK, constraints, and indexes.</p>
+        </div>
+    </div>
+
+    <!-- Slide 10: Queries (note: separate file) -->
+    <div class="slide" id="slide10">
+        <div class="slide-content">
+            <h2>📈 Analytical Queries</h2>
+            <p>All business intelligence queries are in a separate file: <strong>queries.sql</strong> (provided below).</p>
+            <p>Examples include:</p>
+            <ul>
+                <li>Top restaurants by revenue</li>
+                <li>Average delivery time per rider</li>
+                <li>Monthly revenue trend</li>
+                <li>Most popular menu items</li>
+                <li>Customer lifetime value</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Slide 11: Live Rider Simulation -->
+    <div class="slide" id="slide11">
+        <div class="slide-content">
+            <h2>🛵 Live Rider Simulation (Delivery_Assignments)</h2>
+            <div id="simMap" class="map-container"></div>
+            <div>
+                <button class="sim-btn" id="simStartBtn">Accept Order (Start Ride)</button>
+                <button class="sim-btn" id="simResetBtn">Reset Rider</button>
+                <button class="sim-btn" id="simGoogleBtn">Open in Google Maps</button>
+            </div>
+            <div id="simDistance" style="margin-top:12px; background:#fff0f5; padding:8px; border-radius:40px; text-align:center;">📍 Distance: calculating...</div>
+            <p>Bike moves from Restaurant (Liberty Market) to Customer (Gulberg) – shortest path.</p>
+        </div>
+    </div>
+
+    <!-- Slide 12: Q&A with hidden answers (click to reveal) -->
+    <div class="slide" id="slide12">
+        <div class="slide-content">
+            <h2>❓ Possible Teacher Questions (Click to show answer)</h2>
+            <div id="qaContainer">
+                <div class="qa-item">
+                    <div class="qa-question">Why 22 tables? Could you merge some? <button class="show-answer-btn" data-qa="0">Show Answer</button></div>
+                    <div class="qa-answer" id="qa0">Each table has a single purpose. Merging would cause redundancy. For example, Order_Items is separate from Orders to allow multiple items per order (1NF).</div>
+                </div>
+                <div class="qa-item">
+                    <div class="qa-question">What is a weak entity? Give an example. <button class="show-answer-btn" data-qa="1">Show Answer</button></div>
+                    <div class="qa-answer" id="qa1">Order_Items is weak – it cannot exist without an Order. ON DELETE CASCADE ensures it is removed with the parent order.</div>
+                </div>
+                <div class="qa-item">
+                    <div class="qa-question">How do you enforce one‑to‑one between Orders and Payments? <button class="show-answer-btn" data-qa="2">Show Answer</button></div>
+                    <div class="qa-answer" id="qa2">By making order_id a UNIQUE FOREIGN KEY in the Payments table. This prevents multiple payments for the same order.</div>
+                </div>
+                <div class="qa-item">
+                    <div class="qa-question">Write a query to find riders who never delivered an order. <button class="show-answer-btn" data-qa="3">Show Answer</button></div>
+                    <div class="qa-answer" id="qa3"><pre style="margin:0; background:#1e293b; font-size:0.7rem;">SELECT * FROM Riders WHERE rider_id NOT IN (SELECT rider_id FROM Delivery_Assignments);</pre></div>
+                </div>
+                <div class="qa-item">
+                    <div class="qa-question">How would you improve performance for large data? <button class="show-answer-btn" data-qa="4">Show Answer</button></div>
+                    <div class="qa-answer" id="qa4">Add non‑clustered indexes on foreign keys (customer_id, restaurant_id) and on frequently filtered columns like order_date and status.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Slide 13: Future Enhancements -->
+    <div class="slide" id="slide13">
+        <div class="slide-content">
+            <h2>🚀 Future Enhancements</h2>
+            <ul>
+                <li>Real‑time GPS tracking from rider mobile app → update Delivery_Assignments</li>
+                <li>AI demand forecasting & dynamic pricing</li>
+                <li><strong>Launch own currency (FoodPanda Coin)</strong> for loyalty and payments</li>
+                <li>Power BI dashboard for advanced analytics</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Slide 14: Conclusion -->
+    <div class="slide" id="slide14">
+        <div class="slide-content">
+            <h2>📌 Conclusion</h2>
+            <ul>
+                <li>✅ 22 normalized tables (3NF) in MS SQL Server</li>
+                <li>✅ Complete ER & UML diagrams (Crow's Foot)</li>
+                <li>✅ Live rider simulation (Delivery_Assignments)</li>
+                <li>✅ Business intelligence queries provided separately</li>
+            </ul>
+            <p style="margin-top:30px; text-align:center; font-size:1.2rem;"><i class="fas fa-check-circle"></i> Ready for real‑world deployment. <br>مَا شَاءَ ٱللَّٰهُ</p>
+        </div>
+    </div>
+</div>
+
+<div class="slide-counter" id="slideCounter">Slide 1 / 14</div>
+<div class="nav-buttons">
+    <button class="nav-btn outline" id="prevBtn"><i class="fas fa-chevron-left"></i> Previous</button>
+    <button class="nav-btn" id="nextBtn">Next <i class="fas fa-chevron-right"></i></button>
+</div>
+
+<script>
+    // slide navigation
+    const slides = document.querySelectorAll('.slide');
+    let current = 0;
+    const total = slides.length;
+    function showSlide(index) {
+        if (index < 0) index = 0;
+        if (index >= total) index = total-1;
+        slides.forEach((s, i) => s.classList.toggle('active', i === index));
+        current = index;
+        document.getElementById('slideCounter').innerText = `Slide ${current+1} / ${total}`;
+    }
+    document.getElementById('prevBtn').onclick = () => showSlide(current-1);
+    document.getElementById('nextBtn').onclick = () => showSlide(current+1);
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') showSlide(current-1);
+        if (e.key === 'ArrowRight') showSlide(current+1);
+    });
+
+    // Mermaid
+    mermaid.initialize({ startOnLoad: true, theme: 'base', themeVariables: { primaryColor: '#d70f64' } });
+    setTimeout(() => mermaid.contentLoaded(), 500);
+
+    // Q&A reveal buttons
+    document.querySelectorAll('.show-answer-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const idx = this.getAttribute('data-qa');
+            const answerDiv = document.getElementById(`qa${idx}`);
+            if (answerDiv.style.display === 'none' || answerDiv.style.display === '') {
+                answerDiv.style.display = 'block';
+                this.textContent = 'Hide Answer';
+            } else {
+                answerDiv.style.display = 'none';
+                this.textContent = 'Show Answer';
+            }
+        });
+    });
+    // Initially hide all answers
+    document.querySelectorAll('.qa-answer').forEach(el => el.style.display = 'none');
+
+    // Live Simulation (same as before)
+    const start = [31.5149, 74.3430];
+    const end = [31.5204, 74.3587];
+    let map = null, bikeMarker = null, routingControl = null, currentRoute = null, step = 0, anim = null, totalDist = 0;
+
+    function initSimMap() {
+        if (map) return;
+        map = L.map('simMap').setView([31.517, 74.35], 14);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; OSM' }).addTo(map);
+        const bikeIcon = L.divIcon({ html: '<i class="fas fa-motorcycle" style="font-size:28px; color:#d70f64;"></i>', iconSize: [28,28] });
+        bikeMarker = L.marker(start, {icon: bikeIcon}).addTo(map);
+        L.marker(start).bindPopup('Restaurant').addTo(map);
+        L.marker(end).bindPopup('Customer').addTo(map);
+        buildRouteSim();
+    }
+    function buildRouteSim() {
+        if (routingControl) map.removeControl(routingControl);
+        routingControl = L.Routing.control({
+            waypoints: [L.latLng(start[0],start[1]), L.latLng(end[0],end[1])],
+            createMarker: () => null,
+            lineOptions: {styles: [{color: '#d70f64', weight: 5}]}
+        }).addTo(map);
+        routingControl.on('routesfound', (e) => {
+            currentRoute = e.routes[0].coordinates;
+            totalDist = e.routes[0].summary.totalDistance / 1000;
+            step = 0;
+            document.getElementById('simDistance').innerHTML = `📍 Distance: ${totalDist.toFixed(2)} km – Ready. Press Accept Order.`;
+        });
+    }
+    function startMoveSim() {
+        if (anim) clearInterval(anim);
+        if (!currentRoute || step >= currentRoute.length-1) return;
+        anim = setInterval(() => {
+            if (step >= currentRoute.length-1) {
+                clearInterval(anim);
+                bikeMarker.setLatLng(end);
+                document.getElementById('simDistance').innerHTML = '✅ Delivered! Rider reached customer.';
+                return;
+            }
+            step++;
+            bikeMarker.setLatLng(currentRoute[step]);
+            let rem = totalDist * (1 - step/(currentRoute.length-1));
+            document.getElementById('simDistance').innerHTML = `📍 Distance remaining: ${rem.toFixed(2)} km`;
+            map.panTo(currentRoute[step]);
+        }, 70);
+    }
+    const observer = new MutationObserver(() => {
+        if (slides[10].classList.contains('active') && !map) initSimMap();
+    });
+    observer.observe(document.getElementById('slidesContainer'), { attributes: true, subtree: true, attributeFilter: ['class'] });
+    setTimeout(() => { if (slides[10].classList.contains('active')) initSimMap(); }, 200);
+    document.addEventListener('click', (e) => {
+        if (e.target.id === 'simStartBtn') {
+            if (!currentRoute) buildRouteSim();
+            else { if(anim) clearInterval(anim); step=0; bikeMarker.setLatLng(start); startMoveSim(); }
+        }
+        if (e.target.id === 'simResetBtn') {
+            if(anim) clearInterval(anim);
+            if(bikeMarker) bikeMarker.setLatLng(start);
+            step = 0;
+            if(currentRoute) document.getElementById('simDistance').innerHTML = `📍 Distance: ${totalDist.toFixed(2)} km – Reset.`;
+            else document.getElementById('simDistance').innerHTML = '📍 Click Accept Order to load route.';
+            if(map) map.setView(start, 14);
+        }
+        if (e.target.id === 'simGoogleBtn') {
+            window.open(`https://www.google.com/maps/dir/${start[0]},${start[1]}/${end[0]},${end[1]}`);
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Rider Live Simulation | FoodPanda Clone | H.M.Bilal</title>
+    <!-- Leaflet + Routing Machine -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(145deg, #fff5f8 0%, #ffe4ec 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .sim-card {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 48px;
+            box-shadow: 0 20px 40px rgba(215, 15, 100, 0.15);
+            overflow: hidden;
+            border: 1px solid #ffb7ce;
+        }
+        .header {
+            background: #ffffff;
+            padding: 20px 28px;
+            border-bottom: 3px solid #d70f64;
+            text-align: center;
+        }
+        .header h1 {
+            color: #d70f64;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .header h1 i {
+            font-size: 2rem;
+        }
+        .badge {
+            background: #d70f6410;
+            padding: 8px 16px;
+            border-radius: 40px;
+            margin-top: 10px;
+            font-weight: 500;
+            color: #a10f4a;
+            font-size: 0.9rem;
+        }
+        .map-container {
+            height: 450px;
+            width: 100%;
+            border-bottom: 1px solid #ffb7ce;
+        }
+        .controls {
+            padding: 20px 28px;
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: center;
+            background: #fff0f5;
+        }
+        button {
+            background: #d70f64;
+            border: none;
+            padding: 12px 28px;
+            border-radius: 60px;
+            font-weight: 700;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            font-size: 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        button.outline {
+            background: transparent;
+            border: 1.5px solid #d70f64;
+            color: #d70f64;
+        }
+        button.outline:hover {
+            background: #d70f6410;
+        }
+        button:hover {
+            transform: scale(1.02);
+            filter: brightness(1.05);
+        }
+        .info-panel {
+            background: white;
+            margin: 0 20px 20px 20px;
+            border-radius: 32px;
+            padding: 16px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid #ffb7ce;
+        }
+        .distance {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: #d70f64;
+        }
+        footer {
+            background: #f9e5ed;
+            padding: 16px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #a10f4a;
+            border-top: 1px solid #ffb7ce;
+        }
+        @media (max-width: 700px) {
+            .header h1 { font-size: 1.3rem; }
+            button { padding: 8px 16px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="sim-card">
+    <div class="header">
+        <h1>
+            <i class="fas fa-motorcycle"></i> 
+            FoodPanda Rider Live Simulation
+            <i class="fas fa-map-marked-alt"></i>
+        </h1>
+        <div class="badge">
+            <i class="fas fa-user-graduate"></i> H.M.Bilal | Roll No: FA-2025-SEC-B-048
+        </div>
+        <div class="badge" style="background:#ffe6ef;">
+            <i class="fas fa-utensils"></i> Restaurant → Customer | Lahore, Pakistan
+        </div>
+    </div>
+
+    <div id="simulationMap" class="map-container"></div>
+
+    <div class="controls">
+        <button id="acceptOrderBtn"><i class="fas fa-check-circle"></i> Accept Order (Start Ride)</button>
+        <button id="resetBtn" class="outline"><i class="fas fa-undo-alt"></i> Reset Rider</button>
+        <button id="googleMapsBtn" class="outline"><i class="fab fa-google"></i> Open Route in Google Maps</button>
+    </div>
+
+    <div class="info-panel">
+        <i class="fas fa-info-circle" style="color:#d70f64;"></i> 
+        <span class="distance" id="distanceDisplay">📍 Calculating route...</span>
+        <br><small>Click <strong>"Accept Order"</strong> – the bike will move from <strong>Restaurant (Liberty Market)</strong> to <strong>Customer (Gulberg)</strong> via the shortest path.</small>
+    </div>
+
+    <footer>
+        <i class="fas fa-database"></i> Delivery_Assignments table simulation | Real‑time routing with OSRM | Pink & White Theme
+    </footer>
+</div>
+
+<script>
+    // Coordinates (Lahore, Pakistan)
+    const restaurant = { lat: 31.5149, lng: 74.3430 };  // Liberty Market
+    const customer   = { lat: 31.5204, lng: 74.3587 };  // Gulberg
+
+    // Initialize map with light/pinkish tile layer
+    let map = L.map('simulationMap').setView([31.517, 74.35], 14);
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>',
+        subdomains: 'abcd'
+    }).addTo(map);
+
+    // Custom bike icon (pink motorcycle)
+    const bikeIcon = L.divIcon({
+        html: '<i class="fas fa-motorcycle" style="font-size: 32px; color: #d70f64; filter: drop-shadow(0 0 3px white);"></i>',
+        iconSize: [32, 32],
+        className: 'bike-marker'
+    });
+
+    // Place markers
+    let bikeMarker = L.marker([restaurant.lat, restaurant.lng], { icon: bikeIcon }).addTo(map);
+    L.marker([restaurant.lat, restaurant.lng]).bindPopup('🍽️ Restaurant (Start)').addTo(map);
+    L.marker([customer.lat, customer.lng]).bindPopup('🏠 Customer (Delivery Point)').addTo(map);
+
+    let routingControl = null;
+    let currentRoute = null;      // array of lat/lng points
+    let currentStep = 0;
+    let animationInterval = null;
+    let totalDistance = 0;
+
+    // Function to fetch the shortest route using OSRM (via Leaflet Routing Machine)
+    function buildRoute(callback) {
+        if (routingControl) map.removeControl(routingControl);
+        routingControl = L.Routing.control({
+            waypoints: [
+                L.latLng(restaurant.lat, restaurant.lng),
+                L.latLng(customer.lat, customer.lng)
+            ],
+            routeWhileDragging: false,
+            showAlternatives: false,
+            lineOptions: { styles: [{ color: '#d70f64', weight: 5, opacity: 0.9 }] },
+            createMarker: function() { return null; } // hide default markers
+        }).addTo(map);
+
+        routingControl.on('routesfound', function(e) {
+            const route = e.routes[0];
+            currentRoute = route.coordinates;
+            totalDistance = route.summary.totalDistance / 1000; // kilometers
+            currentStep = 0;
+            document.getElementById('distanceDisplay').innerHTML = `📍 Distance: ${totalDistance.toFixed(2)} km – Route ready. Press "Accept Order".`;
+            if (callback) callback();
+        });
+    }
+
+    // Animate bike along the route
+    function startMoving() {
+        if (animationInterval) clearInterval(animationInterval);
+        if (!currentRoute || currentStep >= currentRoute.length - 1) {
+            document.getElementById('distanceDisplay').innerHTML = '✅ Delivered! Rider reached customer.';
+            return;
+        }
+        animationInterval = setInterval(() => {
+            if (currentStep >= currentRoute.length - 1) {
+                clearInterval(animationInterval);
+                bikeMarker.setLatLng([customer.lat, customer.lng]);
+                document.getElementById('distanceDisplay').innerHTML = '✅ Order Delivered! Thank you.';
+                return;
+            }
+            currentStep++;
+            const nextPoint = currentRoute[currentStep];
+            bikeMarker.setLatLng(nextPoint);
+            const remaining = totalDistance * (1 - (currentStep / (currentRoute.length - 1)));
+            document.getElementById('distanceDisplay').innerHTML = `📍 Distance remaining: ${remaining.toFixed(2)} km`;
+            map.panTo(nextPoint);
+        }, 70); // smooth movement
+    }
+
+    // Event listeners
+    document.getElementById('acceptOrderBtn').addEventListener('click', () => {
+        if (!currentRoute) {
+            buildRoute(() => startMoving());
+        } else {
+            if (animationInterval) clearInterval(animationInterval);
+            currentStep = 0;
+            bikeMarker.setLatLng([restaurant.lat, restaurant.lng]);
+            startMoving();
+        }
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+        if (animationInterval) clearInterval(animationInterval);
+        bikeMarker.setLatLng([restaurant.lat, restaurant.lng]);
+        currentStep = 0;
+        if (currentRoute) {
+            document.getElementById('distanceDisplay').innerHTML = `📍 Distance: ${totalDistance.toFixed(2)} km – Reset to start.`;
+        } else {
+            document.getElementById('distanceDisplay').innerHTML = '📍 Click "Accept Order" to load route.';
+        }
+        map.setView([restaurant.lat, restaurant.lng], 14);
+    });
+
+    document.getElementById('googleMapsBtn').addEventListener('click', () => {
+        const url = `https://www.google.com/maps/dir/${restaurant.lat},${restaurant.lng}/${customer.lat},${customer.lng}`;
+        window.open(url, '_blank');
+    });
+
+    // Initial route load
+    buildRoute(() => {
+        document.getElementById('distanceDisplay').innerHTML = `📍 Distance: ${totalDistance.toFixed(2)} km – Ready. Press Accept Order.`;
+    });
+</script>
+</body>
+</html>

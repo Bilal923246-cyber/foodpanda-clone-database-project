@@ -1,0 +1,528 @@
+-- ============================================================
+-- FOODPANDA CLONE – FULLY HARDCODED (NO LOOPS)
+-- 10 CUSTOMERS | 10 RIDERS | 10 RESTAURANTS | 10 ORDERS
+-- All INSERT statements are explicit – easy to explain
+-- Author: H.M.Bilal (FA-2025-SEC-B-048)
+-- ============================================================
+
+CREATE DATABASE FoodPandaClone_Hardcoded;
+GO
+
+USE FoodPandaClone_Hardcoded;
+GO
+
+-- ============================================================
+-- CREATE 22 TABLES (same structure, fully normalized)
+-- ============================================================
+
+CREATE TABLE User_Accounts (
+    user_id INT IDENTITY PRIMARY KEY,
+    email NVARCHAR(100) UNIQUE NOT NULL,
+    password_hash NVARCHAR(255) NOT NULL,
+    phone_number NVARCHAR(20),
+    user_type NVARCHAR(20) CHECK (user_type IN ('customer','owner','rider','admin')),
+    is_active BIT DEFAULT 1,
+    created_at DATETIME2 DEFAULT GETDATE()
+);
+
+CREATE TABLE Customers (
+    customer_id INT IDENTITY PRIMARY KEY,
+    user_id INT UNIQUE FOREIGN KEY REFERENCES User_Accounts(user_id) ON DELETE CASCADE,
+    first_name NVARCHAR(50),
+    last_name NVARCHAR(50),
+    loyalty_points INT DEFAULT 0
+);
+
+CREATE TABLE Restaurant_Owners (
+    owner_id INT IDENTITY PRIMARY KEY,
+    user_id INT UNIQUE FOREIGN KEY REFERENCES User_Accounts(user_id) ON DELETE CASCADE,
+    first_name NVARCHAR(50),
+    last_name NVARCHAR(50),
+    business_license NVARCHAR(50)
+);
+
+CREATE TABLE Riders (
+    rider_id INT IDENTITY PRIMARY KEY,
+    user_id INT UNIQUE FOREIGN KEY REFERENCES User_Accounts(user_id) ON DELETE CASCADE,
+    first_name NVARCHAR(50),
+    last_name NVARCHAR(50),
+    vehicle_type NVARCHAR(30),
+    license_plate NVARCHAR(15),
+    is_available BIT DEFAULT 1,
+    rating DECIMAL(3,2) DEFAULT 5.0 CHECK (rating BETWEEN 0 AND 5)
+);
+
+CREATE TABLE Addresses (
+    address_id INT IDENTITY PRIMARY KEY,
+    user_id INT FOREIGN KEY REFERENCES User_Accounts(user_id),
+    restaurant_id INT NULL,
+    address_line NVARCHAR(255),
+    city NVARCHAR(50),
+    latitude DECIMAL(10,8),
+    longitude DECIMAL(11,8),
+    CHECK (user_id IS NOT NULL OR restaurant_id IS NOT NULL)
+);
+
+CREATE TABLE Restaurants (
+    restaurant_id INT IDENTITY PRIMARY KEY,
+    owner_id INT FOREIGN KEY REFERENCES Restaurant_Owners(owner_id),
+    name NVARCHAR(100) NOT NULL,
+    cuisine_type NVARCHAR(50),
+    min_order_amount DECIMAL(10,2),
+    delivery_fee DECIMAL(10,2),
+    is_open BIT DEFAULT 1
+);
+
+CREATE TABLE Menu_Items (
+    item_id INT IDENTITY PRIMARY KEY,
+    restaurant_id INT FOREIGN KEY REFERENCES Restaurants(restaurant_id) ON DELETE CASCADE,
+    name NVARCHAR(100),
+    price DECIMAL(10,2),
+    category NVARCHAR(50),
+    is_available BIT DEFAULT 1
+);
+
+CREATE TABLE Orders (
+    order_id INT IDENTITY PRIMARY KEY,
+    customer_id INT FOREIGN KEY REFERENCES Customers(customer_id),
+    restaurant_id INT FOREIGN KEY REFERENCES Restaurants(restaurant_id),
+    address_id INT FOREIGN KEY REFERENCES Addresses(address_id),
+    status NVARCHAR(20) DEFAULT 'Pending' CHECK (status IN ('Pending','Preparing','OutForDelivery','Delivered','Cancelled')),
+    order_date DATETIME2 DEFAULT GETDATE(),
+    total_amount DECIMAL(10,2)
+);
+
+CREATE TABLE Order_Items (
+    order_item_id INT IDENTITY PRIMARY KEY,
+    order_id INT FOREIGN KEY REFERENCES Orders(order_id) ON DELETE CASCADE,
+    item_id INT FOREIGN KEY REFERENCES Menu_Items(item_id),
+    quantity INT CHECK (quantity > 0),
+    unit_price DECIMAL(10,2),
+    subtotal DECIMAL(10,2)
+);
+
+CREATE TABLE Payments (
+    payment_id INT IDENTITY PRIMARY KEY,
+    order_id INT UNIQUE FOREIGN KEY REFERENCES Orders(order_id),
+    amount DECIMAL(10,2),
+    payment_method NVARCHAR(30),
+    status NVARCHAR(20) DEFAULT 'Completed'
+);
+
+CREATE TABLE Delivery_Assignments (
+    assignment_id INT IDENTITY PRIMARY KEY,
+    order_id INT UNIQUE FOREIGN KEY REFERENCES Orders(order_id),
+    rider_id INT FOREIGN KEY REFERENCES Riders(rider_id),
+    assigned_at DATETIME2 DEFAULT GETDATE(),
+    delivered_at DATETIME2 NULL,
+    delivery_status NVARCHAR(20) DEFAULT 'Assigned'
+);
+
+CREATE TABLE Reviews (
+    review_id INT IDENTITY PRIMARY KEY,
+    order_id INT UNIQUE FOREIGN KEY REFERENCES Orders(order_id),
+    customer_id INT FOREIGN KEY REFERENCES Customers(customer_id),
+    restaurant_rating INT CHECK (restaurant_rating BETWEEN 1 AND 5),
+    rider_rating INT CHECK (rider_rating BETWEEN 1 AND 5),
+    comment NVARCHAR(500)
+);
+
+-- Additional tables (minimal)
+CREATE TABLE Promotions (promo_id INT IDENTITY PRIMARY KEY, code NVARCHAR(50) UNIQUE);
+CREATE TABLE Kitchen_Staff (staff_id INT IDENTITY PRIMARY KEY, restaurant_id INT FOREIGN KEY REFERENCES Restaurants(restaurant_id));
+CREATE TABLE Inventory (inventory_id INT IDENTITY PRIMARY KEY, restaurant_id INT FOREIGN KEY REFERENCES Restaurants(restaurant_id));
+CREATE TABLE Support_Tickets (ticket_id INT IDENTITY PRIMARY KEY, user_id INT FOREIGN KEY REFERENCES User_Accounts(user_id));
+CREATE TABLE Refunds (refund_id INT IDENTITY PRIMARY KEY, order_id INT FOREIGN KEY REFERENCES Orders(order_id));
+CREATE TABLE Seller_Wallet (wallet_id INT IDENTITY PRIMARY KEY, owner_id INT FOREIGN KEY REFERENCES Restaurant_Owners(owner_id));
+CREATE TABLE Heatmap_Logs (log_id INT IDENTITY PRIMARY KEY, customer_id INT FOREIGN KEY REFERENCES Customers(customer_id));
+CREATE TABLE System_Health (health_id INT IDENTITY PRIMARY KEY);
+CREATE TABLE Grocery_Items (grocery_id INT IDENTITY PRIMARY KEY, restaurant_id INT FOREIGN KEY REFERENCES Restaurants(restaurant_id));
+CREATE TABLE User_Security (security_id INT IDENTITY PRIMARY KEY, user_id INT FOREIGN KEY REFERENCES User_Accounts(user_id));
+
+-- ============================================================
+-- HARDCODED INSERTS (NO LOOPS)
+-- ============================================================
+
+-- Admin user
+INSERT INTO User_Accounts (email, password_hash, phone_number, user_type) VALUES
+('admin@foodpanda.com', 'admin123', '03001112233', 'admin');
+
+-- 10 Customers (each with User_Accounts)
+INSERT INTO User_Accounts (email, password_hash, phone_number, user_type) VALUES
+('customer1@ex.com','hash1','03001111111','customer'),
+('customer2@ex.com','hash2','03002222222','customer'),
+('customer3@ex.com','hash3','03003333333','customer'),
+('customer4@ex.com','hash4','03004444444','customer'),
+('customer5@ex.com','hash5','03005555555','customer'),
+('customer6@ex.com','hash6','03006666666','customer'),
+('customer7@ex.com','hash7','03007777777','customer'),
+('customer8@ex.com','hash8','03008888888','customer'),
+('customer9@ex.com','hash9','03009999999','customer'),
+('customer10@ex.com','hash10','03001010101','customer');
+
+INSERT INTO Customers (user_id, first_name, last_name, loyalty_points) VALUES
+(2,'Ahmad','Raza',100),
+(3,'Sara','Khan',200),
+(4,'Bilal','Ahmed',150),
+(5,'Fatima','Ali',300),
+(6,'Hamza','Shah',50),
+(7,'Zain','Malik',180),
+(8,'Ayesha','Butt',220),
+(9,'Ali','Hassan',90),
+(10,'Sana','Javed',310),
+(11,'Omar','Farooq',140);
+
+-- 10 Riders
+INSERT INTO User_Accounts (email, password_hash, phone_number, user_type) VALUES
+('rider1@fp.com','rh1','03111111111','rider'),
+('rider2@fp.com','rh2','03112222222','rider'),
+('rider3@fp.com','rh3','03113333333','rider'),
+('rider4@fp.com','rh4','03114444444','rider'),
+('rider5@fp.com','rh5','03115555555','rider'),
+('rider6@fp.com','rh6','03116666666','rider'),
+('rider7@fp.com','rh7','03117777777','rider'),
+('rider8@fp.com','rh8','03118888888','rider'),
+('rider9@fp.com','rh9','03119999999','rider'),
+('rider10@fp.com','rh10','03111010101','rider');
+
+INSERT INTO Riders (user_id, first_name, last_name, vehicle_type, license_plate, rating) VALUES
+(12,'RiderOne','One','Motorcycle','LEH-101',4.5),
+(13,'RiderTwo','Two','Motorcycle','LEH-102',4.6),
+(14,'RiderThree','Three','Car','LEH-103',4.7),
+(15,'RiderFour','Four','Motorcycle','LEH-104',4.4),
+(16,'RiderFive','Five','Motorcycle','LEH-105',4.8),
+(17,'RiderSix','Six','Car','LEH-106',4.9),
+(18,'RiderSeven','Seven','Motorcycle','LEH-107',4.5),
+(19,'RiderEight','Eight','Motorcycle','LEH-108',4.6),
+(20,'RiderNine','Nine','Car','LEH-109',4.7),
+(21,'RiderTen','Ten','Motorcycle','LEH-110',4.4);
+
+-- 10 Restaurant Owners & 10 Restaurants
+INSERT INTO User_Accounts (email, password_hash, phone_number, user_type) VALUES
+('owner1@bistro.com','oh1','03021111111','owner'),
+('owner2@bistro.com','oh2','03022222222','owner'),
+('owner3@bistro.com','oh3','03023333333','owner'),
+('owner4@bistro.com','oh4','03024444444','owner'),
+('owner5@bistro.com','oh5','03025555555','owner'),
+('owner6@bistro.com','oh6','03026666666','owner'),
+('owner7@bistro.com','oh7','03027777777','owner'),
+('owner8@bistro.com','oh8','03028888888','owner'),
+('owner9@bistro.com','oh9','03029999999','owner'),
+('owner10@bistro.com','oh10','03021010101','owner');
+
+INSERT INTO Restaurant_Owners (user_id, first_name, last_name, business_license) VALUES
+(22,'Owner1','One','LIC-001'),
+(23,'Owner2','Two','LIC-002'),
+(24,'Owner3','Three','LIC-003'),
+(25,'Owner4','Four','LIC-004'),
+(26,'Owner5','Five','LIC-005'),
+(27,'Owner6','Six','LIC-006'),
+(28,'Owner7','Seven','LIC-007'),
+(29,'Owner8','Eight','LIC-008'),
+(30,'Owner9','Nine','LIC-009'),
+(31,'Owner10','Ten','LIC-010');
+
+INSERT INTO Restaurants (owner_id, name, cuisine_type, min_order_amount, delivery_fee) VALUES
+(1,'Taste Bistro','Continental',400,50),
+(2,'Spice Hub','Pakistani',350,45),
+(3,'Wok Express','Chinese',300,40),
+(4,'Grill Master','BBQ',500,60),
+(5,'Pizza Palace','Italian',450,55),
+(6,'Sushi House','Japanese',600,70),
+(7,'Burger Shack','Fast Food',250,35),
+(8,'Curry Leaves','Indian',380,50),
+(9,'Sweet Tooth','Dessert',150,30),
+(10,'Seafood Bay','Seafood',550,65);
+
+-- Menu Items (5 items per restaurant = 50 items)
+-- Restaurant 1
+INSERT INTO Menu_Items (restaurant_id, name, price, category) VALUES
+(1,'Grilled Chicken Steak',550,'Main'),
+(1,'Chicken Alfredo Pasta',480,'Main'),
+(1,'Caesar Salad',300,'Appetizer'),
+(1,'Chocolate Lava Cake',250,'Dessert'),
+(1,'Mint Lemonade',120,'Beverage');
+-- Restaurant 2
+INSERT INTO Menu_Items (restaurant_id, name, price, category) VALUES
+(2,'Chicken Biryani',350,'Main'),
+(2,'Mutton Karahi',1200,'Main'),
+(2,'Garlic Naan',80,'Bread'),
+(2,'Gulab Jamun',150,'Dessert'),
+(2,'Lassi',100,'Beverage');
+-- Restaurant 3
+INSERT INTO Menu_Items (restaurant_id, name, price, category) VALUES
+(3,'Kung Pao Chicken',450,'Main'),
+(3,'Spring Rolls',200,'Appetizer'),
+(3,'Fried Rice',280,'Main'),
+(3,'Hot Sour Soup',180,'Appetizer'),
+(3,'Jasmine Tea',90,'Beverage');
+-- Restaurant 4
+INSERT INTO Menu_Items (restaurant_id, name, price, category) VALUES
+(4,'BBQ Platter',1500,'Main'),
+(4,'Grilled Corn',250,'Appetizer'),
+(4,'Spicy Wings',350,'Appetizer'),
+(4,'Baked Potato',200,'Side'),
+(4,'Lemonade',130,'Beverage');
+-- Restaurant 5
+INSERT INTO Menu_Items (restaurant_id, name, price, category) VALUES
+(5,'Margherita Pizza',600,'Main'),
+(5,'Pepperoni Pizza',750,'Main'),
+(5,'Garlic Bread',180,'Appetizer'),
+(5,'Tiramisu',300,'Dessert'),
+(5,'Soft Drink',80,'Beverage');
+-- Restaurant 6
+INSERT INTO Menu_Items (restaurant_id, name, price, category) VALUES
+(6,'California Roll',500,'Main'),
+(6,'Miso Soup',200,'Appetizer'),
+(6,'Sashimi Platter',1200,'Main'),
+(6,'Green Tea Ice Cream',250,'Dessert'),
+(6,'Sake',400,'Beverage');
+-- Restaurant 7
+INSERT INTO Menu_Items (restaurant_id, name, price, category) VALUES
+(7,'Zinger Burger',450,'Main'),
+(7,'Cheese Fries',280,'Side'),
+(7,'Chicken Nuggets',320,'Appetizer'),
+(7,'Milkshake',250,'Beverage'),
+(7,'Onion Rings',180,'Side');
+-- Restaurant 8
+INSERT INTO Menu_Items (restaurant_id, name, price, category) VALUES
+(8,'Butter Chicken',550,'Main'),
+(8,'Dal Makhani',350,'Main'),
+(8,'Naan Basket',120,'Bread'),
+(8,'Raita',80,'Side'),
+(8,'Kheer',180,'Dessert');
+-- Restaurant 9
+INSERT INTO Menu_Items (restaurant_id, name, price, category) VALUES
+(9,'Belgian Waffle',350,'Dessert'),
+(9,'Chocolate Mousse',280,'Dessert'),
+(9,'Cheesecake',320,'Dessert'),
+(9,'Hot Chocolate',200,'Beverage'),
+(9,'Macaron',150,'Dessert');
+-- Restaurant 10
+INSERT INTO Menu_Items (restaurant_id, name, price, category) VALUES
+(10,'Grilled Lobster',1800,'Main'),
+(10,'Fish & Chips',650,'Main'),
+(10,'Clam Chowder',350,'Appetizer'),
+(10,'Shrimp Cocktail',400,'Appetizer'),
+(10,'White Wine',600,'Beverage');
+
+-- Addresses for customers (one address per customer)
+INSERT INTO Addresses (user_id, address_line, city, latitude, longitude) VALUES
+(2,'House 1, Gulberg', 'Lahore', 31.5204, 74.3587),
+(3,'House 2, Gulberg', 'Lahore', 31.5205, 74.3588),
+(4,'House 3, Gulberg', 'Lahore', 31.5206, 74.3589),
+(5,'House 4, Gulberg', 'Lahore', 31.5207, 74.3590),
+(6,'House 5, Gulberg', 'Lahore', 31.5208, 74.3591),
+(7,'House 6, DHA', 'Lahore', 31.4800, 74.3600),
+(8,'House 7, DHA', 'Lahore', 31.4810, 74.3610),
+(9,'House 8, Model Town', 'Lahore', 31.4850, 74.3500),
+(10,'House 9, Model Town', 'Lahore', 31.4860, 74.3510),
+(11,'House 10, Johar Town', 'Lahore', 31.4600, 74.3450);
+
+-- Orders (10 orders, each with 2-3 items)
+INSERT INTO Orders (customer_id, restaurant_id, address_id, total_amount, status, order_date) VALUES
+(1,1,1,1020,'Delivered',DATEADD(DAY,-1,GETDATE())),
+(2,2,2,850,'Delivered',DATEADD(DAY,-2,GETDATE())),
+(3,3,3,480,'Pending',DATEADD(DAY,-3,GETDATE())),
+(4,4,4,1250,'OutForDelivery',DATEADD(DAY,-4,GETDATE())),
+(5,5,5,680,'Delivered',DATEADD(DAY,-5,GETDATE())),
+(6,6,6,920,'Delivered',DATEADD(DAY,-6,GETDATE())),
+(7,7,7,400,'Pending',DATEADD(DAY,-7,GETDATE())),
+(8,8,8,750,'Delivered',DATEADD(DAY,-8,GETDATE())),
+(9,9,9,300,'OutForDelivery',DATEADD(DAY,-9,GETDATE())),
+(10,10,10,1100,'Delivered',DATEADD(DAY,-10,GETDATE()));
+
+-- Order Items (2-3 items per order)
+INSERT INTO Order_Items (order_id, item_id, quantity, unit_price, subtotal) VALUES
+-- Order 1
+(1,1,1,550,550),
+(1,4,2,250,500),
+-- Order 2
+(2,6,1,350,350),
+(2,8,2,80,160),
+(2,9,2,150,300),
+-- Order 3
+(3,13,1,200,200),
+(3,14,1,280,280),
+-- Order 4
+(4,16,1,1500,1500),
+(4,18,2,350,700),
+-- Order 5
+(5,21,1,600,600),
+(5,23,1,180,180),
+-- Order 6
+(6,27,1,500,500),
+(6,28,1,200,200),
+(6,30,1,250,250),
+-- Order 7
+(7,33,1,450,450),
+(7,34,1,280,280),
+-- Order 8
+(8,38,1,550,550),
+(8,40,1,120,120),
+(8,42,1,80,80),
+-- Order 9
+(9,44,1,350,350),
+(9,45,1,280,280),
+-- Order 10
+(10,47,1,1800,1800),
+(10,49,1,350,350);
+
+-- Update order totals after items inserted (manual calculation)
+UPDATE Orders SET total_amount = 1050 WHERE order_id = 1;  -- 550+500=1050
+UPDATE Orders SET total_amount = 810 WHERE order_id = 2;  -- 350+160+300=810
+UPDATE Orders SET total_amount = 480 WHERE order_id = 3;  -- 200+280=480
+UPDATE Orders SET total_amount = 2200 WHERE order_id = 4; -- 1500+700=2200
+UPDATE Orders SET total_amount = 780 WHERE order_id = 5;  -- 600+180=780
+UPDATE Orders SET total_amount = 950 WHERE order_id = 6;  -- 500+200+250=950
+UPDATE Orders SET total_amount = 730 WHERE order_id = 7;  -- 450+280=730
+UPDATE Orders SET total_amount = 750 WHERE order_id = 8;  -- 550+120+80=750
+UPDATE Orders SET total_amount = 630 WHERE order_id = 9;  -- 350+280=630
+UPDATE Orders SET total_amount = 2150 WHERE order_id = 10; -- 1800+350=2150
+
+-- Payments (for delivered orders only)
+INSERT INTO Payments (order_id, amount, payment_method, status) VALUES
+(1,1050,'Credit Card','Completed'),
+(2,810,'Digital Wallet','Completed'),
+(5,780,'Cash on Delivery','Completed'),
+(6,950,'Credit Card','Completed'),
+(8,750,'Digital Wallet','Completed'),
+(10,2150,'Credit Card','Completed');
+
+-- Delivery Assignments (for delivered and out-for-delivery orders)
+INSERT INTO Delivery_Assignments (order_id, rider_id, assigned_at, delivered_at, delivery_status) VALUES
+(1,1,DATEADD(HOUR,-2,GETDATE()),DATEADD(HOUR,-1,GETDATE()),'Delivered'),
+(2,2,DATEADD(HOUR,-3,GETDATE()),DATEADD(HOUR,-2,GETDATE()),'Delivered'),
+(4,3,DATEADD(HOUR,-1,GETDATE()),NULL,'Assigned'),
+(5,4,DATEADD(HOUR,-4,GETDATE()),DATEADD(HOUR,-3,GETDATE()),'Delivered'),
+(6,5,DATEADD(HOUR,-5,GETDATE()),DATEADD(HOUR,-4,GETDATE()),'Delivered'),
+(8,6,DATEADD(HOUR,-2,GETDATE()),DATEADD(HOUR,-1,GETDATE()),'Delivered'),
+(9,7,DATEADD(HOUR,-1,GETDATE()),NULL,'Assigned'),
+(10,8,DATEADD(HOUR,-3,GETDATE()),DATEADD(HOUR,-2,GETDATE()),'Delivered');
+
+-- Reviews (for delivered orders only)
+INSERT INTO Reviews (order_id, customer_id, restaurant_rating, rider_rating, comment) VALUES
+(1,1,5,4,'Excellent steak!'),
+(2,2,4,5,'Biryani was great, rider very polite'),
+(5,5,5,5,'Perfect delivery'),
+(6,6,4,4,'Sushi was fresh'),
+(8,8,5,4,'Butter chicken is amazing'),
+(10,10,5,5,'Lobster was perfect');
+
+-- ============================================================
+-- SIMPLE QUERIES (no window functions, no pagination, no running totals)
+-- ============================================================
+
+PRINT '========== 1. BASIC COUNTS ==========';
+SELECT 'Total Customers' AS Metric, COUNT(*) AS Value FROM Customers
+UNION ALL SELECT 'Total Riders', COUNT(*) FROM Riders
+UNION ALL SELECT 'Total Restaurants', COUNT(*) FROM Restaurants
+UNION ALL SELECT 'Total Orders', COUNT(*) FROM Orders;
+
+PRINT '========== 2. ORDER STATUS DISTRIBUTION ==========';
+SELECT status, COUNT(*) AS order_count FROM Orders GROUP BY status ORDER BY order_count DESC;
+
+PRINT '========== 3. TOTAL REVENUE & AVERAGE ORDER VALUE ==========';
+SELECT SUM(total_amount) AS total_revenue, AVG(total_amount) AS avg_order_value
+FROM Orders WHERE status = 'Delivered';
+
+PRINT '========== 4. TOP 5 RESTAURANTS BY REVENUE ==========';
+SELECT TOP 5 r.name, SUM(o.total_amount) AS revenue
+FROM Orders o JOIN Restaurants r ON o.restaurant_id = r.restaurant_id
+WHERE o.status = 'Delivered'
+GROUP BY r.name ORDER BY revenue DESC;
+
+PRINT '========== 5. TOP 5 CUSTOMERS BY TOTAL SPENT ==========';
+SELECT TOP 5 c.first_name, SUM(o.total_amount) AS total_spent
+FROM Customers c JOIN Orders o ON c.customer_id = o.customer_id
+WHERE o.status = 'Delivered'
+GROUP BY c.first_name ORDER BY total_spent DESC;
+
+PRINT '========== 6. RIDER DELIVERY COUNT ==========';
+SELECT r.first_name, COUNT(da.assignment_id) AS deliveries
+FROM Riders r LEFT JOIN Delivery_Assignments da ON r.rider_id = da.rider_id AND da.delivery_status = 'Delivered'
+GROUP BY r.first_name ORDER BY deliveries DESC;
+
+PRINT '========== 7. AVERAGE DELIVERY TIME PER RIDER (minutes) ==========';
+SELECT r.first_name, AVG(DATEDIFF(MINUTE, da.assigned_at, da.delivered_at)) AS avg_minutes
+FROM Delivery_Assignments da JOIN Riders r ON da.rider_id = r.rider_id
+WHERE da.delivered_at IS NOT NULL
+GROUP BY r.first_name ORDER BY avg_minutes;
+
+PRINT '========== 8. MOST POPULAR MENU ITEMS ==========';
+SELECT TOP 5 mi.name, COUNT(oi.order_item_id) AS times_ordered
+FROM Order_Items oi JOIN Menu_Items mi ON oi.item_id = mi.item_id
+GROUP BY mi.name ORDER BY times_ordered DESC;
+
+PRINT '========== 9. REVENUE PER CUISINE TYPE ==========';
+SELECT r.cuisine_type, SUM(o.total_amount) AS revenue
+FROM Orders o JOIN Restaurants r ON o.restaurant_id = r.restaurant_id
+WHERE o.status = 'Delivered'
+GROUP BY r.cuisine_type ORDER BY revenue DESC;
+
+PRINT '========== 10. MONTHLY REVENUE (LAST 6 MONTHS) ==========';
+SELECT FORMAT(order_date, 'yyyy-MM') AS month, SUM(total_amount) AS revenue
+FROM Orders WHERE status = 'Delivered'
+GROUP BY FORMAT(order_date, 'yyyy-MM')
+ORDER BY month DESC;
+
+PRINT '========== 11. CUSTOMERS WHO SPENT MORE THAN AVERAGE ==========';
+SELECT c.first_name, SUM(o.total_amount) AS total_spent
+FROM Customers c JOIN Orders o ON c.customer_id = o.customer_id
+WHERE o.status = 'Delivered'
+GROUP BY c.first_name
+HAVING SUM(o.total_amount) > (SELECT AVG(total_amount) FROM Orders WHERE status = 'Delivered');
+
+PRINT '========== 12. ORDERS IN LAST 30 DAYS ==========';
+SELECT COUNT(*) AS orders_last_30days FROM Orders WHERE order_date >= DATEADD(DAY, -30, GETDATE());
+
+PRINT '========== 13. REVENUE IN LAST 7 DAYS ==========';
+SELECT SUM(total_amount) AS revenue_last_7days FROM Orders WHERE status = 'Delivered' AND order_date >= DATEADD(DAY, -7, GETDATE());
+
+PRINT '========== 14. RIDERS WITH HIGHEST AVERAGE CUSTOMER RATING ==========';
+SELECT TOP 3 r.first_name, AVG(rev.rider_rating) AS avg_rating
+FROM Reviews rev
+JOIN Delivery_Assignments da ON rev.order_id = da.order_id
+JOIN Riders r ON da.rider_id = r.rider_id
+GROUP BY r.first_name ORDER BY avg_rating DESC;
+
+PRINT '========== 15. ALL OutForDelivery ORDERS WITH RIDER NAME ==========';
+SELECT o.order_id, r.first_name AS rider, o.total_amount
+FROM Orders o
+JOIN Delivery_Assignments da ON o.order_id = da.order_id
+JOIN Riders r ON da.rider_id = r.rider_id
+WHERE o.status = 'OutForDelivery';
+
+PRINT '========== 16. HIGHEST RATED RESTAURANT (min 2 reviews) ==========';
+SELECT TOP 1 r.name, AVG(rev.restaurant_rating) AS avg_rating, COUNT(rev.review_id) AS review_count
+FROM Reviews rev
+JOIN Orders o ON rev.order_id = o.order_id
+JOIN Restaurants r ON o.restaurant_id = r.restaurant_id
+GROUP BY r.name
+HAVING COUNT(rev.review_id) >= 2
+ORDER BY avg_rating DESC;
+
+PRINT '========== 17. UPDATE RIDER RATING (example) ==========';
+UPDATE Riders SET rating = 4.9 WHERE rider_id = 1;
+SELECT 'Rider 1 rating updated to 4.9' AS Message;
+
+PRINT '========== 18. DELETE CUSTOMERS WITH NO ORDERS (if any) ==========';
+DELETE FROM Customers WHERE customer_id NOT IN (SELECT customer_id FROM Orders);
+SELECT 'Customers with no orders deleted (if any)' AS Message;
+
+PRINT '========== 19. SHOW ORDERS WITH CUSTOMER, RESTAURANT, AND RIDER NAMES ==========';
+SELECT TOP 20 o.order_id, c.first_name AS customer, r.name AS restaurant, rd.first_name AS rider, o.status, o.order_date
+FROM Orders o
+JOIN Customers c ON o.customer_id = c.customer_id
+JOIN Restaurants r ON o.restaurant_id = r.restaurant_id
+LEFT JOIN Delivery_Assignments da ON o.order_id = da.order_id
+LEFT JOIN Riders rd ON da.rider_id = rd.rider_id
+ORDER BY o.order_date DESC;
+
+PRINT '========== 20. ORDERS DELIVERED IN LESS THAN 30 MINUTES ==========';
+SELECT o.order_id, DATEDIFF(MINUTE, da.assigned_at, da.delivered_at) AS delivery_minutes
+FROM Orders o
+JOIN Delivery_Assignments da ON o.order_id = da.order_id
+WHERE da.delivered_at IS NOT NULL AND DATEDIFF(MINUTE, da.assigned_at, da.delivered_at) < 30;
+
+PRINT '========== END OF SCRIPT ==========';

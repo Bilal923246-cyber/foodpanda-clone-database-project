@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3NF in FoodPanda Clone | Mink & White Theme</title>
+    <!-- Mermaid for diagrams -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f5f0ea;  /* warm mink background */
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            line-height: 1.5;
+            color: #3a2c29;
+            padding: 2rem 1.5rem;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: #ffffff;
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.08);
+            padding: 2rem;
+        }
+        h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #8b6b4d, #c2a07e);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+        .subhead {
+            color: #8b6b4d;
+            border-left: 4px solid #c2a07e;
+            padding-left: 1rem;
+            margin: 0.5rem 0 1.8rem;
+            font-weight: 500;
+        }
+        .badge-rule {
+            background: #e4d5c3;
+            color: #5a3e2e;
+            padding: 0.3rem 0.9rem;
+            border-radius: 40px;
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        .card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.04);
+            margin-bottom: 2rem;
+            border: 1px solid #e8dcd0;
+            overflow: hidden;
+        }
+        .card-header {
+            background: #faf6f0;
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid #e8dcd0;
+            font-weight: 700;
+            font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            color: #5a3e2e;
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        th, td {
+            border: 1px solid #e8dcd0;
+            padding: 10px 8px;
+            text-align: left;
+        }
+        th {
+            background: #faf3ea;
+            color: #5a3e2e;
+        }
+        .pk {
+            background: #f0e7dd;
+            font-weight: 600;
+            color: #5a3e2e;
+        }
+        .prime {
+            background: #f0e7dd;
+        }
+        .nonprime {
+            background: #fef1e6;
+        }
+        .note {
+            background: #fef8f2;
+            border-left: 5px solid #c2a07e;
+            padding: 0.8rem 1.2rem;
+            border-radius: 1rem;
+            margin: 1rem 0;
+        }
+        .warning-note {
+            background: #fef1e6;
+            border-left-color: #b97f6e;
+        }
+        .formula {
+            font-family: 'Courier New', monospace;
+            background: #f0e7dd;
+            padding: 0.2rem 0.4rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+        .mermaid {
+            background: #fefcf8;
+            padding: 1rem;
+            border-radius: 1rem;
+            margin: 1rem 0;
+            text-align: center;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1rem 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #8b6b4d;
+            border-top: 1px solid #e8dcd0;
+            padding-top: 1.5rem;
+        }
+        @media (max-width: 700px) {
+            body { padding: 1rem; }
+            .container { padding: 1rem; }
+            th, td { font-size: 0.75rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="badge-rule">📘 FoodPanda Clone – Third Normal Form (3NF) Compliance</div>
+    <h1>🍕 Why All 22 Tables are in 3NF</h1>
+    <div class="subhead">Visual demonstration using actual tables: Orders, Customers, Addresses, Delivery_Assignments – no transitive dependencies.</div>
+
+    <!-- Core 3NF rule -->
+    <div class="card">
+        <div class="card-header">🎯 The 3NF Rule (applied to every table)</div>
+        <div class="card-body">
+            <p>A table is in <strong>Third Normal Form</strong> if:</p>
+            <ul style="margin-left: 1.5rem;">
+                <li>✅ It is already in <strong>2NF</strong> (no partial dependency).</li>
+                <li>✅ <strong>No non‑prime attribute determines another non‑prime attribute</strong> – i.e., no transitive dependency.</li>
+            </ul>
+            <div class="note">
+                <strong>Formal condition for every FD X → Y:</strong><br>
+                Either <span class="formula">X</span> is a <strong>superkey</strong> (candidate key) <strong>OR</strong> every attribute in <span class="formula">Y</span> is a <strong>prime attribute</strong> (part of some candidate key).<br>
+                The only forbidden pattern: <span class="formula">non‑prime → non‑prime</span>.
+            </div>
+        </div>
+    </div>
+
+    <!-- Example 1: Orders table -->
+    <div class="card">
+        <div class="card-header">📦 Table 1: <code>Orders</code> – No transitive dependency</div>
+        <div class="card-body">
+            <table>
+                <thead><tr><th>order_id (PK)</th><th>customer_id (FK)</th><th>restaurant_id (FK)</th><th>total_amount</th><th>status</th></tr></thead>
+                <tbody>
+                    <tr class="pk"><td>101</td><td>5</td><td>12</td><td>935</td><td>Delivered</td></tr>
+                    <tr class="pk"><td>102</td><td>5</td><td>12</td><td>450</td><td>Pending</td></tr>
+                </tbody>
+            </table>
+            <p><strong>Candidate key:</strong> <code>order_id</code> (only one).<br>
+            <strong>Prime attribute:</strong> <code>order_id</code>.<br>
+            <strong>Non‑prime attributes:</strong> <code>customer_id, restaurant_id, total_amount, status</code>.</p>
+            <div class="mermaid">
+            graph TD
+                A["order_id (PK)"] --> B[customer_id]
+                A --> C[restaurant_id]
+                A --> D[total_amount]
+                A --> E[status]
+                style A fill:#f0e7dd,stroke:#c2a07e
+                style B fill:#fef1e6
+                style C fill:#fef1e6
+                style D fill:#fef1e6
+                style E fill:#fef1e6
+            </div>
+            <p>✅ All functional dependencies are <span class="formula">prime → non‑prime</span> (allowed).<br>
+            ❌ No non‑prime attribute determines another non‑prime attribute. For example:<br>
+            <code>customer_id</code> does <strong>not</strong> determine <code>total_amount</code> (same customer can have different order totals).<br>
+            <code>restaurant_id</code> does <strong>not</strong> determine <code>status</code> (same restaurant can have orders with different status).</p>
+            <div class="note">✅ <code>Orders</code> is in <strong>3NF</strong>.</div>
+        </div>
+    </div>
+
+    <!-- Example 2: Customers table -->
+    <div class="card">
+        <div class="card-header">👤 Table 2: <code>Customers</code> – No transitive dependency</div>
+        <div class="card-body">
+            <table>
+                <thead><tr><th>customer_id (PK)</th><th>user_id (FK)</th><th>first_name</th><th>last_name</th><th>loyalty_points</th></tr></thead>
+                <tbody>
+                    <tr class="pk"><td>1</td><td>101</td><td>John</td><td>Doe</td><td>120</td></tr>
+                </tbody>
+            </table>
+            <p><strong>Candidate key:</strong> <code>customer_id</code>.<br>
+            <strong>Prime:</strong> <code>customer_id</code>. <strong>Non‑prime:</strong> <code>user_id, first_name, last_name, loyalty_points</code>.</p>
+            <div class="mermaid">
+            graph LR
+                PK[customer_id] --> U[user_id]
+                PK --> FN[first_name]
+                PK --> LN[last_name]
+                PK --> LP[loyalty_points]
+                style PK fill:#f0e7dd
+                style U fill:#fef1e6
+                style FN fill:#fef1e6
+                style LN fill:#fef1e6
+                style LP fill:#fef1e6
+            </div>
+            <p>✅ Only <span class="formula">prime → non‑prime</span> dependencies. No non‑prime determines another non‑prime.<br>
+            (e.g., <code>user_id</code> does not determine <code>loyalty_points</code> – points depend on the customer, not the login).</p>
+            <div class="note">✅ <code>Customers</code> is in <strong>3NF</strong>.</div>
+        </div>
+    </div>
+
+    <!-- Example 3: Addresses table -->
+    <div class="card">
+        <div class="card-header">📍 Table 3: <code>Addresses</code> – Avoids city → latitude transitive dependency</div>
+        <div class="card-body">
+            <table>
+                <thead><tr><th>address_id (PK)</th><th>user_id</th><th>restaurant_id</th><th>city</th><th>latitude</th><th>longitude</th></tr></thead>
+                <tbody>
+                    <tr class="pk"><td>1</td><td>5</td><td>NULL</td><td>Lahore</td><td>31.5204</td><td>74.3587</td></tr>
+                </tbody>
+            </table>
+            <p><strong>Candidate key:</strong> <code>address_id</code>.<br>
+            <strong>Prime:</strong> <code>address_id</code>. <strong>Non‑prime:</strong> all others.</p>
+            <p><strong>Potential violation if badly designed:</strong> If we had <code>city → latitude</code> (non‑prime → non‑prime), that would break 3NF.<br>
+            <strong>In our design:</strong> latitude and longitude are stored per address, not per city. Different addresses in the same city can have different coordinates → no functional dependency <code>city → latitude</code> exists.</p>
+            <div class="mermaid">
+            graph TD
+                A[address_id] --> C[city]
+                A --> Lat[latitude]
+                A --> Lon[longitude]
+                style A fill:#f0e7dd
+                style C fill:#fef1e6
+                style Lat fill:#fef1e6
+                style Lon fill:#fef1e6
+            </div>
+            <div class="note">✅ No transitive dependency → <code>Addresses</code> is in <strong>3NF</strong>.</div>
+        </div>
+    </div>
+
+    <!-- Example 4: Delivery_Assignments (two candidate keys) -->
+    <div class="card">
+        <div class="card-header">🛵 Table 4: <code>Delivery_Assignments</code> – Two candidate keys, still 3NF</div>
+        <div class="card-body">
+            <table>
+                <thead><tr><th>assignment_id (PK)</th><th>order_id (unique FK)</th><th>rider_id</th><th>assigned_at</th><th>delivered_at</th></tr></thead>
+                <tbody>
+                    <tr><td class="prime">1001</td><td class="prime">500</td><td>12</td><td>2025-05-18 12:00</td><td>2025-05-18 12:25</td></tr>
+                </tbody>
+            </table>
+            <p><strong>Candidate keys:</strong> <code>assignment_id</code> AND <code>order_id</code> (because one order has exactly one assignment).<br>
+            <strong>Prime attributes:</strong> <code>assignment_id</code>, <code>order_id</code>.<br>
+            <strong>Non‑prime:</strong> <code>rider_id, assigned_at, delivered_at</code>.</p>
+            <div class="mermaid">
+            graph TD
+                A[assignment_id] --> R[rider_id]
+                A --> At[assigned_at]
+                A --> Dt[delivered_at]
+                O[order_id] --> R
+                O --> At
+                O --> Dt
+                style A fill:#f0e7dd
+                style O fill:#f0e7dd
+                style R fill:#fef1e6
+                style At fill:#fef1e6
+                style Dt fill:#fef1e6
+            </div>
+            <p>✅ All FDs: <span class="formula">prime → non‑prime</span> (allowed).<br>
+            ❌ No non‑prime attribute determines another non‑prime (e.g., <code>rider_id</code> does not determine <code>delivered_at</code> – a rider has many deliveries with different times).</p>
+            <div class="note">✅ <code>Delivery_Assignments</code> is in <strong>3NF</strong>.</div>
+        </div>
+    </div>
+
+    <!-- What a 3NF violation looks like (contrast) -->
+    <div class="card">
+        <div class="card-header">⚠️ What a 3NF violation would look like (and how we avoided it)</div>
+        <div class="card-body">
+            <p><strong>Bad design (denormalised) that violates 3NF:</strong></p>
+            <table style="background:#fef8f2;">
+                <thead><tr><th>order_id</th><th>customer_name</th><th>customer_city</th><th>restaurant_name</th><th>restaurant_rating</th></tr></thead>
+                <tbody>
+                    <tr><td>1</td><td>John</td><td>Lahore</td><td>Bilal Bistro</td><td>4.9</td></tr>
+                    <tr><td>2</td><td>John</td><td>Lahore</td><td>Pizza Hut</td><td>4.5</td></tr>
+                </tbody>
+            </table>
+            <p>Functional dependencies:<br>
+            <span class="formula">order_id → customer_name, customer_city, restaurant_name, restaurant_rating</span><br>
+            <span class="formula">customer_name → customer_city</span> (non‑prime → non‑prime) ❌<br>
+            <span class="formula">restaurant_name → restaurant_rating</span> (non‑prime → non‑prime) ❌</p>
+            <div class="warning-note">
+                ❌ This table is <strong>NOT in 3NF</strong> because of transitive dependencies (customer city repeats, restaurant rating repeats).<br>
+                <strong>Our fix:</strong> We split into <code>Customers</code>, <code>Restaurants</code>, and <code>Orders</code>. Now each fact is stored once.
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary for all 22 tables -->
+    <div class="card">
+        <div class="card-header">📊 Summary – All 22 Tables Satisfy 3NF</div>
+        <div class="card-body">
+            <div class="grid-2">
+                <div>
+                    <h3 style="color:#5a3e2e;">✅ Eliminated transitive dependencies:</h3>
+                    <ul>
+                        <li>Order → customer city → moved to <code>Addresses</code></li>
+                        <li>Order → restaurant rating → moved to <code>Restaurants</code></li>
+                        <li>Delivery → rider phone → moved to <code>Riders</code> + <code>Users</code></li>
+                        <li>Address → city latitude → stored per address, no FD</li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 style="color:#5a3e2e;">✅ Every non‑prime attribute depends ONLY on:</h3>
+                    <ul>
+                        <li>the primary key (or a candidate key)</li>
+                        <li>no chain of dependencies exists</li>
+                    </ul>
+                    <p>➡️ <strong>Zero update/insert/delete anomalies.</strong></p>
+                </div>
+            </div>
+            <div class="note">
+                🎯 <strong>Final check:</strong> For every functional dependency in all 22 tables, the left‑hand side is always a superkey <strong>OR</strong> the right‑hand side consists only of prime attributes. The forbidden pattern (non‑prime → non‑prime) never occurs.
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        📘 Third Normal Form (3NF) – FoodPanda Clone Project | All tables normalised to 3NF | No transitive dependencies | Visual proof with actual schema
+    </footer>
+</div>
+
+<script>
+    mermaid.initialize({ 
+        startOnLoad: true, 
+        theme: 'base', 
+        themeVariables: { 
+            primaryColor: '#c2a07e', 
+            lineColor: '#8b6b4d', 
+            background: '#ffffff' 
+        },
+        flowchart: { useMaxWidth: true, htmlLabels: true }
+    });
+</script>
+</body>
+</html>

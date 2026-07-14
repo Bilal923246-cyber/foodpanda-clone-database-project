@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Third Normal Form (3NF) in DBMS | Complete Visual Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f0f7ff 0%, #e9eef5 100%);
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+            line-height: 1.5;
+            color: #1a2c3e;
+            padding: 2rem 1.5rem;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 2rem;
+            box-shadow: 0 20px 40px -12px rgba(0,0,0,0.2);
+            overflow: hidden;
+            padding: 2rem 2rem 2.5rem;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #1E3C72, #2A5298);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.3px;
+        }
+
+        .subhead {
+            font-size: 1rem;
+            color: #2c5a7a;
+            border-left: 4px solid #2a73b1;
+            padding-left: 1rem;
+            margin: 0.5rem 0 1.8rem 0;
+            font-weight: 500;
+        }
+
+        .badge-rule {
+            background: #1e4668;
+            color: white;
+            padding: 0.3rem 0.9rem;
+            border-radius: 40px;
+            display: inline-block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .card {
+            background: #ffffff;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+            margin-bottom: 2rem;
+            transition: all 0.2s ease;
+            border: 1px solid #e2edf7;
+            overflow-x: auto;
+        }
+
+        .card-header {
+            background: #f8fafd;
+            padding: 1rem 1.5rem;
+            border-bottom: 2px solid #dce8f2;
+            font-weight: 700;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            margin: 1rem 0;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+
+        th {
+            background-color: #eef3fc;
+            padding: 12px 8px;
+            font-weight: 600;
+            color: #1f4e79;
+            border-bottom: 2px solid #cbdde9;
+            text-align: center;
+        }
+
+        td {
+            padding: 10px 8px;
+            border-bottom: 1px solid #e2edf4;
+            text-align: center;
+        }
+
+        .pk {
+            background-color: #e0f2e9;
+            font-weight: 600;
+            color: #0d6832;
+            border-left: 3px solid #2ecc71;
+        }
+
+        .prime {
+            background-color: #e0f2e9;
+        }
+
+        .nonprime {
+            background-color: #ffe6e6;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #eef2fa;
+            padding: 0.2rem 0.6rem;
+            border-radius: 30px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            margin-left: 8px;
+            color: #2c5282;
+        }
+
+        .note {
+            background: #eef6fc;
+            border-left: 5px solid #2c7cb6;
+            padding: 0.8rem 1.2rem;
+            border-radius: 1rem;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+
+        .warning-note {
+            background: #ffe6e6;
+            border-left-color: #e74c3c;
+        }
+
+        .formula {
+            font-family: 'Courier New', monospace;
+            background: #f0f2f5;
+            padding: 0.2rem 0.4rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .step-list {
+            margin: 1rem 0 1rem 1.5rem;
+        }
+
+        .step-list li {
+            margin-bottom: 0.5rem;
+        }
+
+        .split-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 1.5rem 0;
+        }
+
+        .condition-card {
+            background: #fef9e8;
+            border-radius: 1rem;
+            padding: 1.2rem;
+            border: 1px solid #f5e6b8;
+        }
+
+        hr {
+            margin: 1.5rem 0;
+            border: none;
+            height: 2px;
+            background: linear-gradient(to right, #cbdde9, transparent);
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            font-size: 0.8rem;
+            color: #5d7f9e;
+            border-top: 1px solid #dce5ef;
+            padding-top: 1.5rem;
+        }
+
+        @media (max-width: 700px) {
+            body {
+                padding: 1rem;
+            }
+            .container {
+                padding: 1rem;
+            }
+            th, td {
+                font-size: 0.8rem;
+                padding: 8px 4px;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="badge-rule">🎓 E.F. Codd's Rule · Third Normal Form (3NF)</div>
+    <h1>📘 Third Normal Form (3NF) <span style="font-size: 1.6rem;">|</span> Eliminating Transitive Dependency</h1>
+    <div class="subhead">🔍 Complete visual guide: Rules, transitive dependency definition, examples, candidate key analysis, and formal 3NF test condition</div>
+
+    <!-- Core rules of 3NF -->
+    <div class="card">
+        <div class="card-header">
+            📌 Two Essential Rules for 3NF
+        </div>
+        <div class="card-body">
+            <p>To bring a table into <strong>Third Normal Form (3NF)</strong>, it must satisfy:</p>
+            <ul style="margin-left: 1.5rem; margin-bottom: 1rem;">
+                <li><strong>Rule 1:</strong> The table must already be in <strong>Second Normal Form (2NF)</strong> – no partial dependencies.</li>
+                <li><strong>Rule 2:</strong> There must be <strong>no transitive dependency</strong> – meaning no non-prime attribute should be functionally dependent on another non-prime attribute.</li>
+            </ul>
+            <div class="note">
+                💡 <strong>Why 3NF matters:</strong> It removes transitive dependencies, further reducing data redundancy and eliminating update/insertion/deletion anomalies that occur when non-key attributes depend on other non-key attributes.
+            </div>
+        </div>
+    </div>
+
+    <!-- What is Transitive Dependency? -->
+    <div class="card">
+        <div class="card-header">
+            🧠 What is Transitive Dependency?
+        </div>
+        <div class="card-body">
+            <p>A <strong>transitive dependency</strong> occurs when a non-prime attribute determines another non-prime attribute through a chain of dependencies.</p>
+            <p>Formally: For attributes <span class="formula">X, Y, Z</span>, if <span class="formula">X → Y</span> and <span class="formula">Y → Z</span>, then <span class="formula">X → Z</span> transitively. If <span class="formula">Y</span> is a non-prime attribute and <span class="formula">Z</span> is also non-prime, this is a <strong>transitive dependency violation</strong> for 3NF.</p>
+            <div class="note warning-note">
+                ⚠️ <strong>Critical Rule:</strong> A non-prime attribute <strong>must not</strong> determine another non-prime attribute. <br>
+                ✅ Allowed cases: Prime → Prime, Prime → Non-prime, Non-prime → Prime. <br>
+                ❌ Not allowed: Non-prime → Non-prime.
+            </div>
+        </div>
+    </div>
+
+    <!-- Example 1: Student table with transitive dependency -->
+    <div class="card">
+        <div class="card-header">
+            📊 Example 1: Student Table (Violates 3NF due to Transitive Dependency)
+        </div>
+        <div class="card-body">
+            <p>Consider a <strong>Student</strong> table with attributes: <code>Roll_Number, State, City</code> and functional dependencies:</p>
+            <ul>
+                <li><span class="formula">Roll_Number → State</span></li>
+                <li><span class="formula">State → City</span></li>
+            </ul>
+            <p><strong>Step 1 – Candidate Key:</strong> <code>Roll_Number</code> is the candidate key (and primary key).<br>
+            <strong>Step 2 – Prime vs Non-Prime:</strong><br>
+            ✅ Prime attribute: <code>Roll_Number</code><br>
+            ❌ Non-prime attributes: <code>State</code>, <code>City</code><br>
+            <strong>Step 3 – Check transitive dependency:</strong><br>
+            <span class="formula">Roll_Number → State</span> (Prime → Non-prime) → ✅ allowed.<br>
+            <span class="formula">State → City</span> (Non-prime → Non-prime) → ❌ <strong>Transitive dependency violation!</strong><br>
+            Because <span class="formula">Roll_Number → City</span> transitively through a non-prime attribute <code>State</code>.</p>
+            <div class="note warning-note">
+                ❌ <strong>Violation:</strong> This table is <strong>NOT in 3NF</strong> because a non-prime attribute (<code>State</code>) determines another non-prime attribute (<code>City</code>).
+            </div>
+            <p><strong>Solution:</strong> Decompose into two tables:<br>
+            <strong>Student_Info</strong>: (Roll_Number, State)<br>
+            <strong>State_City</strong>: (State, City)</p>
+        </div>
+    </div>
+
+    <!-- Formal 3NF Condition from transcript -->
+    <div class="card">
+        <div class="card-header">
+            📐 Formal 3NF Condition (Question Solving Approach)
+        </div>
+        <div class="card-body">
+            <p>For a relation to be in <strong>Third Normal Form (3NF)</strong>, for <strong>every</strong> functional dependency <span class="formula">X → Y</span> (where <span class="formula">X</span> and <span class="formula">Y</span> are sets of attributes), <strong>at least one</strong> of the following must hold:</p>
+            <div class="condition-card">
+                <p style="font-size:1.1rem; font-weight:700;">✅ Condition 1: <span class="formula">X</span> is a <strong>Superkey</strong> (or Candidate Key).</p>
+                <p style="font-size:1.1rem; font-weight:700;">✅ Condition 2: <span class="formula">Y</span> is a <strong>Prime Attribute</strong> (part of any candidate key).</p>
+            </div>
+            <p>In other words: <strong>Either the left-hand side is a superkey, OR the right-hand side is a prime attribute.</strong></p>
+            <div class="note">
+                🎓 <strong>Exam Tip:</strong> This is the standard definition used in GATE, UGC NET, and university exams. You must find <strong>all candidate keys</strong> first, then check every FD against this rule.
+            </div>
+        </div>
+    </div>
+
+    <!-- Example 2: Relation R(A,B,C,D) with FDs AB→CD, D→A -->
+    <div class="card">
+        <div class="card-header">
+            🔍 Example 2: R(A, B, C, D) with FDs AB → CD and D → A
+        </div>
+        <div class="card-body">
+            <p><strong>Given:</strong> Relation <code>R(A, B, C, D)</code><br>
+            Functional Dependencies:<br>
+            1. <span class="formula">AB → CD</span><br>
+            2. <span class="formula">D → A</span></p>
+            <p><strong>Step 1 – Find all Candidate Keys:</strong><br>
+            - Compute closure of <code>AB</code>: AB → AB (reflexive), AB → CD (given) → ABCD → <strong>AB is a candidate key</strong>.<br>
+            - Since <code>D → A</code>, we can replace A with D. Check closure of <code>DB</code>: DB → DB (reflexive), D → A gives A, then AB → CD gives C and D → <strong>DB is also a candidate key</strong>.<br>
+            ✅ Candidate Keys: <strong>{AB, DB}</strong></p>
+            <p><strong>Step 2 – Identify Prime and Non-Prime Attributes:</strong><br>
+            Prime attributes: <strong>A, B, D</strong> (all participate in candidate keys)<br>
+            Non-prime attribute: <strong>C</strong> (only C is not part of any candidate key)</p>
+            <p><strong>Step 3 – Check each FD against 3NF condition:</strong><br>
+            <strong>FD1: AB → CD</strong><br>
+            Left-hand side <code>AB</code> is a candidate key → ✅ satisfies Condition 1 (LHS is superkey).<br>
+            <strong>FD2: D → A</strong><br>
+            Left-hand side <code>D</code> is <strong>not</strong> a candidate key (D alone is not superkey). But check Condition 2: Right-hand side <code>A</code> is a <strong>prime attribute</strong> (since A is part of candidate keys). → ✅ satisfies Condition 2.</p>
+            <div class="note">
+                ✅ <strong>Conclusion:</strong> Both FDs satisfy the 3NF condition. Therefore, <strong>R is in Third Normal Form (3NF)</strong>.
+            </div>
+        </div>
+    </div>
+
+    <!-- Example 3: Another scenario -->
+    <div class="card">
+        <div class="card-header">
+            📚 Example 3: R(A, B, C) with FDs A → B, B → C
+        </div>
+        <div class="card-body">
+            <p><strong>Given:</strong> Relation <code>R(A, B, C)</code> with FDs: <span class="formula">A → B</span>, <span class="formula">B → C</span><br>
+            <strong>Candidate Key:</strong> <code>A</code> (closure A → A,B,C)<br>
+            <strong>Prime attributes:</strong> A &nbsp; <strong>Non-prime:</strong> B, C<br>
+            <strong>Check FD A → B:</strong> LHS A is candidate key → ✅ OK.<br>
+            <strong>Check FD B → C:</strong> LHS B is not a candidate key. RHS C is non-prime → ❌ violates 3NF (transitive dependency: A → B → C).<br>
+            <strong>Result:</strong> Not in 3NF. Decompose into <code>R1(A, B)</code> and <code>R2(B, C)</code>.</p>
+        </div>
+    </div>
+
+    <!-- Algorithm to test for 3NF -->
+    <div class="card">
+        <div class="card-header">
+            📐 Step-by-Step Algorithm to Test for 3NF
+        </div>
+        <div class="card-body">
+            <p>Follow these steps to determine if a given relation is in Third Normal Form:</p>
+            <ol class="step-list">
+                <li><strong>Step 1:</strong> Ensure the relation is already in <strong>2NF</strong> (no partial dependencies).</li>
+                <li><strong>Step 2:</strong> Find <strong>all candidate keys</strong> of the relation using attribute closure method.</li>
+                <li><strong>Step 3:</strong> Identify <strong>prime attributes</strong> (attributes that belong to any candidate key) and <strong>non-prime attributes</strong>.</li>
+                <li><strong>Step 4:</strong> For <strong>every</strong> given functional dependency <span class="formula">X → Y</span>, check:<br>
+                    - Is <span class="formula">X</span> a superkey (candidate key or contains a candidate key)?<br>
+                    - OR is every attribute in <span class="formula">Y</span> a prime attribute?<br>
+                    If <strong>both</strong> conditions fail for any FD → the relation is <strong>NOT in 3NF</strong>.<br>
+                    Otherwise, it is in <strong>3NF</strong>.</li>
+            </ol>
+            <div class="note">
+                🎯 <strong>Key Insight:</strong> Unlike 2NF (which only cares about composite keys and partial dependencies), 3NF handles transitive dependencies and can be checked using the superkey/prime condition.
+            </div>
+        </div>
+    </div>
+
+    <!-- Comparison table: 1NF vs 2NF vs 3NF -->
+    <div class="card">
+        <div class="card-header">
+            📋 Quick Reference: 1NF → 2NF → 3NF
+        </div>
+        <div class="card-body">
+            <table style="width:100%">
+                <thead>
+                    <tr><th style="width:25%">Normal Form</th><th>Requirement</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td style="background:#f4f9fe; font-weight:600;">First Normal Form (1NF)</td><td>Atomic values, no repeating groups / multivalued attributes.</td> </tr>
+                    <tr><td style="background:#f4f9fe; font-weight:600;">Second Normal Form (2NF)</td><td>1NF + No partial dependency (non-prime attributes fully depend on whole candidate key).</td> </tr>
+                    <tr><td style="background:#f4f9fe; font-weight:600;">Third Normal Form (3NF)</td><td>2NF + No transitive dependency (non-prime attribute → non-prime attribute is forbidden).<br>Equivalent: For every FD X→Y, either X is superkey OR Y is prime attribute.</td> </tr>
+                </tbody>
+            </table>
+            <hr>
+            <p><strong>Memory Aid:</strong><br>
+            - 1NF: Atomic cells.<br>
+            - 2NF: Whole key (no partial dependency).<br>
+            - 3NF: Nothing but the key (no transitive dependency).</p>
+        </div>
+    </div>
+
+    <!-- Additional note: Only non-prime → non-prime is the problem -->
+    <div class="card">
+        <div class="card-header">
+            💡 Important Clarification: What is <em>not</em> a violation?
+        </div>
+        <div class="card-body">
+            <p>Many students get confused about which dependencies are allowed in 3NF. Remember:</p>
+            <ul style="margin-left: 1.5rem;">
+                <li>✅ <strong>Prime → Prime</strong> (e.g., Candidate key attribute determines another prime attribute) – <strong>Allowed</strong>.</li>
+                <li>✅ <strong>Prime → Non-prime</strong> (e.g., Candidate key determines a non-key attribute) – <strong>Allowed</strong>.</li>
+                <li>✅ <strong>Non-prime → Prime</strong> (e.g., A non-key attribute determines a key attribute) – <strong>Allowed</strong> (this is rare but valid).</li>
+                <li>❌ <strong>Non-prime → Non-prime</strong> – <strong>NOT allowed</strong> (this is the transitive dependency violation).</li>
+            </ul>
+            <div class="note">
+                🔑 <strong>The only forbidden pattern in 3NF:</strong> A non-prime attribute determining another non-prime attribute.
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        📚 Based on standard database normalization theory (E.F. Codd). Third Normal Form eliminates transitive dependencies, building on 2NF to achieve higher data integrity.<br>
+        💾 Visual guide includes: transitive dependency definition, multiple worked examples, candidate key discovery, and the formal 3NF test condition used in exams.
+    </footer>
+</div>
+</body>
+</html>
